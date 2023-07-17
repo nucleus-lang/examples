@@ -1,4 +1,0 @@
-fn main(): i32 {
-	call say(data "Hello World!\n");
-	return 0;
-}

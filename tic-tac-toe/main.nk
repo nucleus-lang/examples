@@ -1,0 +1,109 @@
+todo "Fix function crashing if you forget to type 'return'";
+
+fn print_board(b: Array<i8>): i32 {
+
+	load f1: i8 = get_element(b, 0);
+	load f2: i8 = get_element(b, 1);
+	load f3: i8 = get_element(b, 2);
+	load f4: i8 = get_element(b, 3);
+	load f5: i8 = get_element(b, 4);
+	load f6: i8 = get_element(b, 5);
+	load f7: i8 = get_element(b, 6);
+	load f8: i8 = get_element(b, 7);
+	load f9: i8 = get_element(b, 8);
+ 
+ 	var l1: Array<i8, 6> = new_array(f1,  '|', f2,  '|', f3,  '\n', '\0');
+ 	var l2: Array<i8, 6> = new_array('-', '+', '-', '+', '-', '\n', '\0');
+	var l3: Array<i8, 6> = new_array(f4,  '|', f5,  '|', f6,  '\n', '\0');
+	var l4: Array<i8, 6> = new_array('-', '+', '-', '+', '-', '\n', '\0');
+	var l5: Array<i8, 6> = new_array(f7,  '|', f8,  '|', f9,  '\n', '\0');
+
+	call say(l1);
+	call say(l2);
+	call say(l3);
+	call say(l4);
+	call say(l5);
+
+	return 0;
+}
+
+fn get_user_input(): i32 {
+	
+	var i: Array<i8, 10>;
+
+	call input(i);
+
+	call say(data "\n");
+
+	load first_el: i8 = get_element(i, 0);
+	pure c: i32 = int_cast(first_el, i32);
+
+	c -= 48;
+
+	return load c;
+}
+
+fn is_table_full(board: Array<i8>): bool {
+	
+	pure count: i32 	= 0;
+	var board_c: i32 	= 0;
+
+	while count < 9 {
+
+		var b_piece: i8 = get_element(board, count);
+		pure c: i32 = int_cast(b_piece, i32);
+
+		count += 1;
+
+		if c == 'x' {
+			board_c += 1; verify board_c;
+		}
+		else if c == 0 {
+			b_piece = ' ';
+		};
+	};
+
+	if board_c == 9 {
+		call say(data "Board is full!\n");
+		return true;
+	};
+
+	return false;
+}
+
+fn game_loop(board: Array<i8>): bool {
+
+	call print_board(board);
+
+	pure inp: i32 = get_user_input();
+
+	var changed_el: i8 = get_element(board, inp);
+	changed_el = 'x';
+
+	pure full: bool = is_table_full(board);
+
+	if full == false {
+		call game_loop(board);
+	}
+	else {
+		call print_board(board);
+	};
+
+	return 0;
+}
+
+fn main(): i32 {
+	
+	call say(data "Welcome to Tic-Tac-Toe!\n");
+	call say(data "\n");
+
+	var board: Array<i8, 9> = new_array(' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x');
+
+	call game_loop(board);
+
+	# var i: Array<i8, 30>;
+
+	# call input(i);
+
+	return 0;
+}

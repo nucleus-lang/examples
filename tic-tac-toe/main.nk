@@ -101,9 +101,5 @@ fn main(): i32 {
 
 	call game_loop(board);
 
-	# var i: Array<i8, 30>;
-
-	# call input(i);
-
 	return 0;
 }

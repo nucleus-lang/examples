@@ -1,7 +1,8 @@
 todo "Fix function crashing if you forget to type 'return'";
+todo "Add && operator.";
 
 fn print_board(b: Array<i8>): i32 {
-
+	
 	load f1: i8 = get_element(b, 0);
 	load f2: i8 = get_element(b, 1);
 	load f3: i8 = get_element(b, 2);
@@ -27,13 +28,38 @@ fn print_board(b: Array<i8>): i32 {
 	return 0;
 }
 
+fn check_if_won(b: Array<i8>, symbol: i8): bool {
+
+	var check: bool = false;
+
+	load f1: i8 = get_element(b, 0);
+	load f2: i8 = get_element(b, 1);
+	load f3: i8 = get_element(b, 2);
+	load f4: i8 = get_element(b, 3);
+	load f5: i8 = get_element(b, 4);
+	load f6: i8 = get_element(b, 5);
+	load f7: i8 = get_element(b, 6);
+	load f8: i8 = get_element(b, 7);
+	load f9: i8 = get_element(b, 8);
+
+	if f1 == symbol { if f2 == symbol { if f3 == symbol { check = true; }; }; };
+	if f4 == symbol { if f5 == symbol { if f6 == symbol { check = true; }; }; };
+	if f7 == symbol { if f8 == symbol { if f9 == symbol { check = true; }; }; };
+
+	if f1 == symbol { if f4 == symbol { if f7 == symbol { check = true; }; }; };
+	if f3 == symbol { if f6 == symbol { if f9 == symbol { check = true; }; }; };
+
+	if f1 == symbol { if f5 == symbol { if f9 == symbol { check = true; }; }; };
+	if f3 == symbol { if f5 == symbol { if f7 == symbol { check = true; }; }; };
+
+	return check;
+}
+
 fn get_user_input(): i32 {
 	
 	var i: Array<i8, 10>;
 
 	call input(i);
-
-	call say(data "\n");
 
 	load first_el: i8 = get_element(i, 0);
 	pure c: i32 = int_cast(first_el, i32);
@@ -48,48 +74,106 @@ fn is_table_full(board: Array<i8>): bool {
 	pure count: i32 	= 0;
 	var board_c: i32 	= 0;
 
+	pure pl_symbol: i8 = 'x';
+	pure ai_symbol: i8 = 'o';
+
+	pure pl_status: bool = check_if_won(board, pl_symbol);
+	pure ai_status: bool = check_if_won(board, ai_symbol);
+
+	if pl_status == true { 
+		call say(data "Player wins!\n"); 
+		return true; 
+	};
+
+	if ai_status == true { 
+		call say(data "AI wins!\n"); 
+		return true; 
+	};
+
 	while count < 9 {
 
 		var b_piece: i8 = get_element(board, count);
 		pure c: i32 = int_cast(b_piece, i32);
 
-		count += 1;
-
-		if c == 'x' {
+		if c != ' ' {
 			board_c += 1; verify board_c;
-		}
-		else if c == 0 {
-			b_piece = ' ';
 		};
+
+		count += 1;
 	};
 
 	if board_c == 9 {
-		call say(data "Board is full!\n");
+		call say(data "Game ended with a Tie!\n"); 
 		return true;
 	};
 
 	return false;
 }
 
+fn is_space_available(board: Array<i8>, position: i32): bool {
+
+	load specific_element: i8 = get_element(board, position);
+	pure sec: i32 = int_cast(specific_element, i32);
+
+	if sec != ' ' {
+
+		return false;
+	};
+
+	return true;
+}
+
+fn ai_move(board: Array<i8>): i32 {
+	
+	pure is_accepted: bool = false;
+	var rand_place: i32 = 0;
+
+	call say(data "AI is thinking...\n");
+
+	while is_accepted == false {
+
+		rand_place = random_between(0, 8);
+		is_accepted += is_space_available(board, rand_place);
+	};
+
+	var changed_el: i8 = get_element(board, rand_place);
+	changed_el = 'o';
+
+	call say(data "AI choose number ");
+	call say_i32(rand_place);
+	call say(data "!\n");
+
+	return 0;
+}
+
 fn game_loop(board: Array<i8>): bool {
 
-	call print_board(board);
+	pure can_proceed: bool = false;
 
-	pure inp: i32 = get_user_input();
+	while can_proceed == false {
 
-	var changed_el: i8 = get_element(board, inp);
-	changed_el = 'x';
+		call print_board(board);
+
+		pure inp: i32 = get_user_input();
+
+		can_proceed += is_space_available(board, inp);
+
+		if can_proceed == true {
+			var changed_el: i8 = get_element(board, inp);
+			changed_el = 'x';
+		}
+		else {
+			call say(data "This space is already taken! Try Again!\n");
+		};
+	};
 
 	pure full: bool = is_table_full(board);
 
 	if full == false {
-		call game_loop(board);
-	}
-	else {
-		call print_board(board);
+		call ai_move(board);
 	};
 
-	return 0;
+	return load full;
 }
 
 fn main(): i32 {
@@ -97,9 +181,15 @@ fn main(): i32 {
 	call say(data "Welcome to Tic-Tac-Toe!\n");
 	call say(data "\n");
 
-	var board: Array<i8, 9> = new_array(' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x');
+	var board: Array<i8, 9> = new_array(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
 
-	call game_loop(board);
+	var win: bool = false;
+
+	while win == false {
+		win = game_loop(board);
+	};
+
+	call print_board(board);
 
 	return 0;
 }
